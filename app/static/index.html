@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gym Management System – Dashboard</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23F26B21'/%3E%3Crect x='22' y='36' width='8' height='28' rx='3' fill='white'/%3E%3Crect x='70' y='36' width='8' height='28' rx='3' fill='white'/%3E%3Crect x='32' y='44' width='36' height='12' fill='white'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg: #f3f4f6; --surface: #ffffff; --surface-2: #f7f8f9; --text: #1b1f23; --muted: #5b6770;
+    --line: #e3e6ea; --accent: #f26b21; --accent-ink: #ffffff; --good: #1f8a70; --good-bg: #e3f4ef;
+    --bad: #c93c3c; --bad-bg: #fbe9e9; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 4px 14px rgba(0,0,0,.04);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171a; --surface: #1f2428; --surface-2: #262c31; --text: #f1f3f5; --muted: #9aa5ae;
+      --line: #333a40; --accent: #ff7d3a; --accent-ink: #1b1f23; --good: #4cc9a8; --good-bg: #1c3a32;
+      --bad: #ff7a7a; --bad-bg: #3d2325; --shadow: none; color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.45; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 24px 20px 56px; }
+  header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+  .logo { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); display: grid; place-items: center; flex: none; }
+  .logo svg { width: 24px; height: 24px; fill: #fff; }
+  h1 { font-size: 22px; margin: 0; line-height: 1.2; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; }
+  .spacer { flex: 1; }
+  .chip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 13px; color: var(--muted); }
+  button { font: inherit; cursor: pointer; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text); padding: 7px 12px; }
+  button:hover { background: var(--surface-2); }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  button.primary:hover { filter: brightness(1.06); }
+  button.danger { color: var(--bad); }
+  button.small { padding: 4px 9px; font-size: 13px; }
+
+  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+  .kpi { padding: 14px 16px; }
+  .kpi .label { color: var(--muted); font-size: 12.5px; }
+  .kpi .value { font-size: 26px; font-weight: 700; margin-top: 2px; line-height: 1.15; }
+  .kpi .value small { font-size: 13px; font-weight: 600; color: var(--muted); margin-right: 3px; }
+  .kpi.warn .value { color: var(--bad); }
+  .kpi.ok .value { color: var(--good); }
+
+  .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .panel { padding: 16px 18px; }
+  .panel h2 { font-size: 15px; margin: 0 0 14px; }
+  .donut-row { display: flex; align-items: center; gap: 22px; }
+  .donut { width: 130px; height: 130px; border-radius: 50%; flex: none; position: relative; }
+  .donut::after { content: ""; position: absolute; inset: 22px; border-radius: 50%; background: var(--surface); }
+  .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1; text-align: center; font-weight: 700; font-size: 22px; line-height: 1.1; }
+  .donut-center small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); }
+  .legend { display: grid; gap: 8px; font-size: 14px; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+  .bars { display: grid; gap: 12px; }
+  .bar-top { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 4px; }
+  .bar-top span:last-child { color: var(--muted); }
+  .track { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--line); }
+  .fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .35s; }
+
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .tab { border: 0; background: none; border-bottom: 3px solid transparent; border-radius: 0; padding: 10px 16px; color: var(--muted); font-weight: 600; }
+  .tab:hover { background: none; color: var(--text); }
+  .tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+  input, select { font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--text); }
+  input[type="search"] { min-width: 240px; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td.num, th.num { text-align: right; }
+  td.actions { text-align: right; }
+  td.actions button { margin-left: 4px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 12.5px; font-weight: 600; }
+  .badge.paid { background: var(--good-bg); color: var(--good); }
+  .badge.unpaid { background: var(--bad-bg); color: var(--bad); }
+  .badge.here { background: var(--good-bg); color: var(--good); }
+  .badge.away { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+  button.badge { border: 0; cursor: pointer; padding: 2px 10px; }
+  .empty { padding: 30px; text-align: center; color: var(--muted); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .two .card > h2 { margin: 0; padding: 14px 16px 10px; font-size: 15px; }
+  .list { list-style: none; margin: 0; padding: 0 16px 14px; display: grid; gap: 8px; }
+  .list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; background: var(--surface-2); border-radius: 8px; }
+  .dates { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 16px; }
+  .dates span { background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 3px 9px; font-size: 13px; }
+  .form-row { padding: 0 16px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .form-row select { flex: 1; min-width: 180px; }
+  .hist-total { padding: 0 16px 10px; color: var(--muted); font-size: 14px; }
+
+  dialog { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--text); padding: 0; width: min(420px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  dialog::backdrop { background: rgba(0,0,0,.45); }
+  dialog form { padding: 20px; display: grid; gap: 12px; }
+  dialog h3 { margin: 0; font-size: 18px; }
+  dialog p { margin: 0; color: var(--muted); font-size: 14px; }
+  label { display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
+  label input, label select { color: var(--text); font-size: 15px; }
+  .dlg-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+  .dlg-error { color: var(--bad); font-size: 13.5px; min-height: 1.2em; }
+
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 10px; font-size: 14px; opacity: 0; pointer-events: none; transition: .25s; max-width: calc(100vw - 32px); z-index: 50; }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  #toast.err { background: var(--bad); color: #fff; }
+
+  @media (max-width: 900px) { .kpis { grid-template-columns: repeat(3, 1fr); } .panels, .two { grid-template-columns: 1fr; } }
+  @media (max-width: 520px) { .kpis { grid-template-columns: repeat(2, 1fr); } .donut-row { flex-direction: column; align-items: flex-start; } input[type="search"] { min-width: 0; width: 100%; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="1" y="8" width="3" height="8" rx="1"/><rect x="20" y="8" width="3" height="8" rx="1"/><rect x="4" y="6" width="3" height="12" rx="1"/><rect x="17" y="6" width="3" height="12" rx="1"/><rect x="7" y="11" width="10" height="2"/></svg></div>
+    <div>
+      <h1>Gym Management System</h1>
+      <p>Admin dashboard · Iqra University, M9 Campus</p>
+    </div>
+    <div class="spacer"></div>
+    <span class="chip" id="todayChip">Today</span>
+    <button id="refreshBtn" title="Reload data from the server">Refresh</button>
+    <button class="primary" id="addBtn">+ Add member</button>
+  </header>
+
+  <section class="kpis" aria-label="Key figures">
+    <div class="card kpi"><div class="label">Total members</div><div class="value" id="kTotal">–</div></div>
+    <div class="card kpi"><div class="label">Present today</div><div class="value" id="kPresent">–</div></div>
+    <div class="card kpi ok"><div class="label">Paid</div><div class="value" id="kPaid">–</div></div>
+    <div class="card kpi warn"><div class="label">Unpaid</div><div class="value" id="kUnpaid">–</div></div>
+    <div class="card kpi ok"><div class="label">Fees collected</div><div class="value" id="kCollected">–</div></div>
+    <div class="card kpi warn"><div class="label">Fees pending</div><div class="value" id="kPending">–</div></div>
+  </section>
+
+  <section class="panels">
+    <div class="card panel">
+      <h2>Payment status</h2>
+      <div class="donut-row">
+        <div class="donut" id="donut"><div class="donut-center" id="donutCenter"></div></div>
+        <div class="legend">
+          <div><span class="dot" style="background:var(--good)"></span><span id="lgPaid">Paid</span></div>
+          <div><span class="dot" style="background:var(--bad)"></span><span id="lgUnpaid">Unpaid</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card panel">
+      <h2>Members by plan</h2>
+      <div class="bars" id="planBars"></div>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-members" aria-selected="true" data-tab="members">Members</button>
+    <button class="tab" role="tab" id="tab-payments" aria-selected="false" data-tab="payments">Payments</button>
+    <button class="tab" role="tab" id="tab-attendance" aria-selected="false" data-tab="attendance">Attendance</button>
+  </div>
+
+  <!-- Members -->
+  <section id="view-members">
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Search by ID, name or phone" aria-label="Search members">
+      <select id="fPlan" aria-label="Filter by plan"><option value="">All plans</option><option>Monthly</option><option>Quarterly</option><option>Yearly</option></select>
+      <select id="fPay" aria-label="Filter by payment"><option value="">All payments</option><option>Paid</option><option>Unpaid</option></select>
+    </div>
+    <div class="card table-wrap"><table>
+      <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Plan</th><th class="num">Fee (PKR)</th><th>Payment</th><th>Joined</th><th>Today</th><th></th></tr></thead>
+      <tbody id="memberRows"></tbody>
+    </table></div>
+  </section>
+
+  <!-- Payments -->
+  <section id="view-payments" hidden>
+    <div class="two">
+      <div class="card"><h2>Unpaid members</h2><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Name</th><th>Plan</th><th class="num">Due (PKR)</th><th></th></tr></thead><tbody id="unpaidRows"></tbody></table></div></div>
+      <div class="card"><h2>Paid members</h2><div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Name</th><th>Plan</th><th class="num">Paid (PKR)</th><th></th></tr></thead><tbody id="paidRows"></tbody></table></div></div>
+    </div>
+  </section>
+
+  <!-- Attendance -->
+  <section id="view-attendance" hidden>
+    <div class="two">
+      <div class="card"><h2>Present today <span id="todayDate" style="color:var(--muted);font-weight:400"></span></h2><ul class="list" id="todayList"></ul></div>
+      <div class="card"><h2>Member attendance</h2>
+        <div class="form-row">
+          <select id="attSelect" aria-label="Choose a member"></select>
+          <button id="attMark" class="primary">Mark present today</button>
+        </div>
+        <div class="hist-total" id="histTotal"></div>
+        <div class="dates" id="histDates"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- Add / edit member -->
+<dialog id="memberDlg"><form id="memberForm">
+  <h3 id="memberTitle">Add member</h3>
+  <label id="idField">Member ID (leave empty to auto-assign)<input id="fId" inputmode="numeric" autocomplete="off"></label>
+  <label>Full name<input id="fName" maxlength="49" required autocomplete="off"></label>
+  <label>Phone number<input id="fPhone" maxlength="14" required inputmode="tel" autocomplete="off" placeholder="03001234567"></label>
+  <label id="planField">Membership plan<select id="fPlanSel"><option>Monthly</option><option>Quarterly</option><option>Yearly</option></select></label>
+  <div class="dlg-error" id="memberErr" role="alert"></div>
+  <div class="dlg-actions"><button type="button" id="memberCancel">Cancel</button><button class="primary" type="submit">Save</button></div>
+</form></dialog>
+
+<!-- Change plan -->
+<dialog id="planDlg"><form id="planForm">
+  <h3 id="planTitle">Change plan</h3>
+  <p>The fee changes to the new plan’s fee and the payment status returns to <b>Unpaid</b>.</p>
+  <label>New plan<select id="planSel"></select></label>
+  <div class="dlg-actions"><button type="button" id="planCancel">Cancel</button><button class="primary" type="submit">Change plan</button></div>
+</form></dialog>
+
+<!-- Delete -->
+<dialog id="delDlg"><form id="delForm">
+  <h3>Delete member?</h3>
+  <p id="delText"></p>
+  <div class="dlg-actions"><button type="button" id="delCancel">Cancel</button><button class="primary" type="submit" style="background:var(--bad);border-color:var(--bad);color:#fff">Delete</button></div>
+</form></dialog>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const state = { members: [], stats: null, tab: "members", editId: null, planId: null, delId: null };
+
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const money = (n) => Number(n).toLocaleString("en-PK", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+
+  async function api(method, url, body) {
+    const opt = { method, headers: {} };
+    if (body !== undefined) { opt.headers["Content-Type"] = "application/json"; opt.body = JSON.stringify(body); }
+    let res;
+    try { res = await fetch(url, opt); } catch (e) { throw new Error("Cannot reach the server."); }
+    let data = {};
+    try { data = await res.json(); } catch (e) { /* empty */ }
+    if (!res.ok) throw new Error(data.error || "Request failed (" + res.status + ").");
+    return data;
+  }
+
+  let toastTimer;
+  function toast(msg, isErr) {
+    const t = $("toast");
+    t.textContent = msg; t.className = "show" + (isErr ? " err" : "");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.className = ""; }, isErr ? 4500 : 2800);
+  }
+  const fail = (e) => toast(e.message, true);
+
+  async function refresh() {
+    try {
+      const [members, stats] = await Promise.all([api("GET", "/api/members"), api("GET", "/api/stats")]);
+      state.members = members; state.stats = stats;
+      render();
+      if (state.tab === "attendance") await loadAttendanceTab();
+    } catch (e) { fail(e); }
+  }
+
+  // ---------- rendering ----------
+  function renderStats() {
+    const s = state.stats;
+    $("todayChip").textContent = "Today · " + s.today;
+    $("kTotal").textContent = s.total;
+    $("kPresent").textContent = s.presentToday;
+    $("kPaid").textContent = s.paid;
+    $("kUnpaid").textContent = s.unpaid;
+    $("kCollected").innerHTML = "<small>PKR</small>" + money(s.collected);
+    $("kPending").innerHTML = "<small>PKR</small>" + money(s.pending);
+
+    const pct = s.total ? Math.round((s.paid / s.total) * 100) : 0;
+    $("donut").style.background = s.total
+      ? "conic-gradient(var(--good) 0 " + pct + "%, var(--bad) " + pct + "% 100%)" : "var(--surface-2)";
+    $("donutCenter").innerHTML = pct + "%<small>paid</small>";
+    $("lgPaid").textContent = "Paid · " + s.paid + " (PKR " + money(s.collected) + ")";
+    $("lgUnpaid").textContent = "Unpaid · " + s.unpaid + " (PKR " + money(s.pending) + ")";
+
+    const max = Math.max(1, ...Object.values(s.plans));
+    $("planBars").innerHTML = Object.keys(s.plans).map((p) =>
+      '<div><div class="bar-top"><span>' + esc(p) + '</span><span>' + s.plans[p] + ' member' + (s.plans[p] === 1 ? "" : "s") +
+      ' · PKR ' + money(s.planFees[p]) + '</span></div><div class="track"><div class="fill" style="width:' +
+      (s.plans[p] / max * 100) + '%"></div></div></div>').join("");
+  }
+
+  function filtered() {
+    const q = $("q").value.trim().toLowerCase(), plan = $("fPlan").value, pay = $("fPay").value;
+    return state.members.filter((m) =>
+      (!q || String(m.id).includes(q) || m.name.toLowerCase().includes(q) || m.phone.includes(q)) &&
+      (!plan || m.plan === plan) && (!pay || m.payStatus === pay));
+  }
+
+  function renderMembers() {
+    const rows = filtered();
+    $("memberRows").innerHTML = rows.length ? rows.map((m) => {
+      const paid = m.payStatus === "Paid";
+      return "<tr>" +
+        "<td>" + m.id + "</td><td><b>" + esc(m.name) + "</b></td><td>" + esc(m.phone) + "</td><td>" + esc(m.plan) + "</td>" +
+        '<td class="num">' + money(m.fee) + "</td>" +
+        '<td><button class="badge ' + (paid ? "paid" : "unpaid") + '" data-act="toggle-pay" data-id="' + m.id + '" title="Click to mark ' + (paid ? "Unpaid" : "Paid") + '">' + esc(m.payStatus) + "</button></td>" +
+        "<td>" + esc(m.joinDate) + "</td>" +
+        "<td>" + (m.presentToday ? '<span class="badge here">Present</span>' : '<button class="small" data-act="present" data-id="' + m.id + '">Mark present</button>') + "</td>" +
+        '<td class="actions"><button class="small" data-act="edit" data-id="' + m.id + '">Edit</button>' +
+        '<button class="small" data-act="plan" data-id="' + m.id + '">Plan</button>' +
+        '<button class="small danger" data-act="delete" data-id="' + m.id + '">Delete</button></td></tr>';
+    }).join("") : '<tr><td colspan="9" class="empty">' + (state.members.length ? "No members match your filters." : "No members registered yet.") + "</td></tr>";
+  }
+
+  function renderPayments() {
+    const row = (m, label, act) => "<tr><td>" + m.id + "</td><td>" + esc(m.name) + "</td><td>" + esc(m.plan) + '</td><td class="num">' + money(m.fee) +
+      '</td><td class="actions"><button class="small ' + (act === "pay" ? "primary" : "") + '" data-act="' + act + '" data-id="' + m.id + '">' + label + "</button></td></tr>";
+    const unpaid = state.members.filter((m) => m.payStatus !== "Paid");
+    const paid = state.members.filter((m) => m.payStatus === "Paid");
+    $("unpaidRows").innerHTML = unpaid.length ? unpaid.map((m) => row(m, "Record payment", "pay")).join("") : '<tr><td colspan="5" class="empty">Everyone has paid.</td></tr>';
+    $("paidRows").innerHTML = paid.length ? paid.map((m) => row(m, "New billing cycle", "unpay")).join("") : '<tr><td colspan="5" class="empty">No payments recorded yet.</td></tr>';
+  }
+
+  function render() { renderStats(); renderMembers(); renderPayments(); }
+
+  // ---------- attendance tab ----------
+  async function loadAttendanceTab() {
+    const cur = $("attSelect").value;
+    $("attSelect").innerHTML = state.members.map((m) => '<option value="' + m.id + '">' + m.id + " · " + esc(m.name) + "</option>").join("");
+    if (cur && state.members.some((m) => String(m.id) === cur)) $("attSelect").value = cur;
+    $("todayDate").textContent = "· " + state.stats.today;
+    try {
+      const list = await api("GET", "/api/attendance/today");
+      $("todayList").innerHTML = list.length ? list.map((r) => "<li><span><b>" + esc(r.name) + "</b> · " + esc(r.plan) + "</span>" +
+        '<span class="badge ' + (r.payStatus === "Paid" ? "paid" : "unpaid") + '">' + esc(r.payStatus) + "</span></li>").join("")
+        : '<li style="justify-content:center;color:var(--muted)">Nobody has been marked present yet.</li>';
+    } catch (e) { fail(e); }
+    await loadHistory();
+  }
+
+  async function loadHistory() {
+    const id = $("attSelect").value;
+    if (!id) { $("histTotal").textContent = "No members yet."; $("histDates").innerHTML = ""; return; }
+    try {
+      const h = await api("GET", "/api/attendance/" + id);
+      $("histTotal").textContent = h.name + " · " + h.total + " day" + (h.total === 1 ? "" : "s") + " present";
+      $("histDates").innerHTML = h.dates.length ? h.dates.slice().reverse().map((d) => "<span>" + esc(d) + "</span>").join("") : "";
+    } catch (e) { fail(e); }
+  }
+
+  // ---------- actions ----------
+  async function markPresent(id) {
+    try {
+      const r = await api("POST", "/api/members/" + id + "/attendance");
+      toast(r.name + " marked present." + (r.unpaid ? " Reminder: fee is unpaid." : ""));
+      await refresh();
+    } catch (e) { fail(e); await refresh(); }
+  }
+  async function setPay(id, status) {
+    try {
+      const m = await api("POST", "/api/members/" + id + "/payment", { status });
+      toast(status === "Paid" ? "Received PKR " + money(m.fee) + " from " + m.name + "." : m.name + " marked Unpaid for the new cycle.");
+      await refresh();
+    } catch (e) { fail(e); }
+  }
+
+  const byId = (id) => state.members.find((m) => m.id === Number(id));
+
+  function openMemberDialog(id) {
+    state.editId = id || null;
+    const m = id ? byId(id) : null;
+    $("memberTitle").textContent = m ? "Edit member " + m.id : "Add member";
+    $("idField").hidden = !!m; $("planField").hidden = !!m;
+    $("fId").value = ""; $("fName").value = m ? m.name : ""; $("fPhone").value = m ? m.phone : "";
+    $("fPlanSel").value = "Monthly"; $("memberErr").textContent = "";
+    $("memberDlg").showModal(); $("fName").focus();
+  }
+
+  $("memberForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const body = { name: $("fName").value, phone: $("fPhone").value };
+    try {
+      if (state.editId) {
+        await api("PUT", "/api/members/" + state.editId, body);
+        toast("Member updated.");
+      } else {
+        body.plan = $("fPlanSel").value; body.id = $("fId").value.trim();
+        const m = await api("POST", "/api/members", body);
+        toast(m.name + " registered with the " + m.plan + " plan (PKR " + money(m.fee) + ", Unpaid).");
+      }
+      $("memberDlg").close(); await refresh();
+    } catch (err) { $("memberErr").textContent = err.message; }
+  });
+  $("memberCancel").onclick = () => $("memberDlg").close();
+
+  function openPlanDialog(id) {
+    const m = byId(id); state.planId = id;
+    $("planTitle").textContent = "Change plan · " + m.name;
+    $("planSel").innerHTML = Object.keys(state.stats.planFees).map((p) =>
+      "<option value=\"" + p + "\"" + (p === m.plan ? " selected" : "") + ">" + p + " – PKR " + money(state.stats.planFees[p]) + "</option>").join("");
+    $("planDlg").showModal();
+  }
+  $("planForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      const m = await api("POST", "/api/members/" + state.planId + "/plan", { plan: $("planSel").value });
+      toast(m.name + " moved to " + m.plan + " (PKR " + money(m.fee) + "). Payment marked Unpaid.");
+      $("planDlg").close(); await refresh();
+    } catch (err) { fail(err); }
+  });
+  $("planCancel").onclick = () => $("planDlg").close();
+
+  function openDeleteDialog(id) {
+    const m = byId(id); state.delId = id;
+    $("delText").textContent = "This removes " + m.name + " (ID " + m.id + ") and all of their attendance records. This cannot be undone.";
+    $("delDlg").showModal();
+  }
+  $("delForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try { await api("DELETE", "/api/members/" + state.delId); toast("Member removed."); $("delDlg").close(); await refresh(); }
+    catch (err) { fail(err); }
+  });
+  $("delCancel").onclick = () => $("delDlg").close();
+
+  // ---------- events ----------
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const id = b.dataset.id;
+    switch (b.dataset.act) {
+      case "present": markPresent(id); break;
+      case "toggle-pay": setPay(id, byId(id).payStatus === "Paid" ? "Unpaid" : "Paid"); break;
+      case "pay": setPay(id, "Paid"); break;
+      case "unpay": setPay(id, "Unpaid"); break;
+      case "edit": openMemberDialog(Number(id)); break;
+      case "plan": openPlanDialog(Number(id)); break;
+      case "delete": openDeleteDialog(Number(id)); break;
+    }
+  });
+
+  document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", async () => {
+    state.tab = t.dataset.tab;
+    document.querySelectorAll(".tab").forEach((x) => x.setAttribute("aria-selected", String(x === t)));
+    ["members", "payments", "attendance"].forEach((v) => { $("view-" + v).hidden = v !== state.tab; });
+    if (state.tab === "attendance") await loadAttendanceTab();
+  }));
+
+  ["q", "fPlan", "fPay"].forEach((id) => $(id).addEventListener("input", renderMembers));
+  $("addBtn").onclick = () => openMemberDialog(null);
+  $("refreshBtn").onclick = () => refresh().then(() => toast("Data refreshed."));
+  $("attSelect").addEventListener("change", loadHistory);
+  $("attMark").onclick = () => { const id = $("attSelect").value; if (id) markPresent(id); };
+
+  refresh();
+  setInterval(() => { if (!document.hidden && !document.querySelector("dialog[open]")) refresh(); }, 30000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+services:
+  dashboard:
+    build: .
+    image: gym-dashboard:latest
+    container_name: gym-dashboard
+    ports:
+      - "8080:8080"          # open http://localhost:8080
+    environment:
+      TZ: Asia/Karachi
+    volumes:
+      - ./data:/data         # members.txt + attendance.txt live here
+    restart: unless-stopped
+
+  # Optional: the original C console program, using the SAME data folder.
+  #   docker compose run --rm cli
+  cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.cli
+    image: gym-cli:latest
+    profiles: ["cli"]
+    stdin_open: true
+    tty: true
+    environment:
+      TZ: Asia/Karachi
+    volumes:
+      - ./data:/data
